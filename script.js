@@ -1,38 +1,90 @@
-// This is the boilerplate code given for you
-// You can modify this code
-// Product data
+// Get the products from an API or hardcode them
 const products = [
   { id: 1, name: "Product 1", price: 10 },
   { id: 2, name: "Product 2", price: 20 },
   { id: 3, name: "Product 3", price: 30 },
   { id: 4, name: "Product 4", price: 40 },
-  { id: 5, name: "Product 5", price: 50 },
+  { id: 5, name: "Product 5", price: 50 }
 ];
 
-// DOM elements
-const productList = document.getElementById("product-list");
+// Function to get the cart from session storage
+function getCart() {
+  const cart = sessionStorage.getItem("cart");
+  return cart ? JSON.parse(cart) : [];
+}
 
-// Render product list
+// Function to update the cart in session storage
+function updateCart(cart) {
+  sessionStorage.setItem("cart", JSON.stringify(cart));
+}
+
+// Function to render the products
 function renderProducts() {
-  products.forEach((product) => {
-    const li = document.createElement("li");
-    li.innerHTML = `${product.name} - $${product.price} <button class="add-to-cart-btn" data-id="${product.id}">Add to Cart</button>`;
-    productList.appendChild(li);
+  const productsContainer = document.getElementById("products");
+
+  products.forEach(product => {
+    const productElement = document.createElement("div");
+    productElement.innerHTML = `
+      <span>${product.name}</span>
+      <span>$${product.price}</span>
+      <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
+    `;
+
+    productsContainer.appendChild(productElement);
   });
 }
 
-// Render cart list
-function renderCart() {}
+// Function to render the shopping cart
+function renderCart() {
+  const cartContainer = document.getElementById("cart");
+  const cart = getCart();
 
-// Add item to cart
-function addToCart(productId) {}
+  cartContainer.innerHTML = "";
 
-// Remove item from cart
-function removeFromCart(productId) {}
+  if (cart.length === 0) {
+    cartContainer.innerHTML = "<p>No items in the cart</p>";
+    return;
+  }
 
-// Clear cart
-function clearCart() {}
+  const cartTotal = cart.reduce((total, item) => total + item.price, 0);
 
-// Initial render
-renderProducts();
-renderCart();
+  cart.forEach(item => {
+    const cartItemElement = document.createElement("div");
+    cartItemElement.innerHTML = `
+      <span>${item.name}</span>
+      <span>$${item.price}</span>
+    `;
+
+    cartContainer.appendChild(cartItemElement);
+  });
+
+  const cartTotalElement = document.createElement("div");
+  cartTotalElement.innerHTML = `<strong>Total: $${cartTotal}</strong>`;
+  cartContainer.appendChild(cartTotalElement);
+}
+
+// Function to handle adding items to the cart
+function handleAddToCart(event) {
+  const productId = event.target.dataset.id;
+  const product = products.find(item => item.id === parseInt(productId));
+
+  if (product) {
+    const cart = getCart();
+    cart.push(product);
+    updateCart(cart);
+    renderCart();
+  }
+}
+
+// Add event listener to the "Add to Cart" buttons
+document.addEventListener("DOMContentLoaded", () => {
+  const addToCartButtons = document.getElementsByClassName("add-to-cart");
+
+  for (let i = 0; i < addToCartButtons.length; i++) {
+    addToCartButtons[i].addEventListener("click", handleAddToCart);
+  }
+
+  // Render products and cart when the page loads
+  renderProducts();
+  renderCart();
+});
